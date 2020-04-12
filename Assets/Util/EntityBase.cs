@@ -58,6 +58,17 @@ public class EntityBase : MonoBehaviour
     //    return Option.None<Material>( );
     //}
 
+    public Mesh TryGetMesh()
+    {
+        var mesh = GetComponent<MeshFilter>( ).sharedMesh;
+        if ( mesh )
+        {
+            return mesh;
+        }
+        mesh = GetComponent<SkinnedMeshRenderer>( ).sharedMesh;
+        return mesh;
+    }
+
     public void SetColor (Color color)
     {
         var renderer = GetComponent<MeshRenderer> ( );
@@ -157,6 +168,12 @@ public class EntityBase : MonoBehaviour
     {
         var pos = GetPos ( );
         SetPos (new Vector3 (pos.x + x, pos.y + y, pos.z + z));
+    }
+
+    public void SetOffset (Vector3 x)
+    {
+        var pos = GetPos ( );
+        SetPos( pos + x );
     }
 
     public void SetRot (Quaternion rot)

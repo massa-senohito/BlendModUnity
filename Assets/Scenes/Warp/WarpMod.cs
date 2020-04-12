@@ -87,7 +87,7 @@ public class WarpMod : EntityBase
 
     void RarePrint( string log )
     {
-        if ( Random.Range( 0 , 10000 ) == 0 )
+        if ( Random.Range( 0 , 100 ) == 0 )
         {
             print( log );
         }
@@ -101,15 +101,21 @@ public class WarpMod : EntityBase
         // MOD_get_vgroup:
         var obInv = transform.worldToLocalMatrix;
         // 191付近
-        // fromをobjローカルの位置へ移動させる
+        // 頂点をobjローカルの位置へ移動させ、fromのワールドオフセットへ移動
         var mat_from  =  mul_m4_m4( obInv , from.localToWorldMatrix);
+        //RarePrint( "mat_from\n" + mat_from );
+        // 頂点をobjローカルの位置へ移動させ、toのワールドオフセットへ移動
         var mat_to    =  mul_m4_m4( obInv , to.localToWorldMatrix);
+        //RarePrint( "mat_to\n" + mat_to );
         // (AB)^-1 = B^-1 A^-1
         // fromローカルに移動させ、オブジェクトのワールドに持っていく
         var tmat      = mat_from.inverse;
-        // toをobjローカル
+        //RarePrint( "tmat\n" + tmat );
+        // fromローカルに移動させ、オブジェクトのワールドに持っていく オブジェクトローカルへ toのワールドへ　toをobjローカル
         var mat_final = mul_m4_m4(tmat , mat_to);
+        //RarePrint( "mat_final\n" + mat_final);
         var mat_from_inv = mat_from.inverse;
+        //RarePrint( "mat_from_inv\n" + mat_from_inv);
         if ( strength < 0.0f )
         {
             strength = -strength;
@@ -131,9 +137,8 @@ public class WarpMod : EntityBase
         {
             var co = verts[i];
             var oriCo = co;
-            //RarePrint( $"93 oriCo {oriCo} ; co {co}" );
+            // 頂点 - fromの距離
             fac = ( co - mat_from.GetPosition( ) ).sqrMagnitude;
-            // 0.007 ~ 0.0168
             //print( fac );
             bool isInSQ = fac < fallOff_rad_sq;
             fac = falloff_radius - sqrt( fac );
@@ -144,7 +149,6 @@ public class WarpMod : EntityBase
             {
                 // vert_groupがあるなら
                 // if( defgrp_index != -1)
-                // 0.8 ~ 0.9
                 //print( fac );
                 var fallOff = CulcFall(fac);
                 fallOff *= weight;
@@ -152,7 +156,9 @@ public class WarpMod : EntityBase
                 if ( fallOff != 0.0f )
                 {
                     // 280付近
+                    // from localに頂点を移動 obj分移動
                     co = mat_from_inv.MultiplyPoint( co );
+                    //RarePrint( "193 co : " + co + " : ori :" + oriCo );
                     // fromの空間に持っていく
                     if ( fallOff == 1.0f )
                     //(fallOff >0.0f)
@@ -171,8 +177,12 @@ public class WarpMod : EntityBase
                         }
                         else
                         {
+                            // from localに頂点を移動 obj分移動 from localの座標系に移動 obj分移動 obj中心の座標系に移動 to分移動させる
+                            //fromInv * ob * fromInv * ob * obInv * to
+                            //fromInv * ob * fromInv * to | from ~ to を求めているように見える
                             var tvec = mat_final.MultiplyPoint( co );
                             var newco = Vector3.Lerp( co , tvec , fallOff );
+                            //RarePrint( "217 co : " + co + " : ori :" + oriCo + " tvec : " + tvec );
                             //var writeMat = "mat_final\n" + mat_final.GetPosition();
                             //RarePrint( $"{tvec} co : {co} newco : {newco} fallOff : {fallOff}" );
                             co = newco;
@@ -192,8 +202,7 @@ public class WarpMod : EntityBase
     // Start is called before the first frame update
     void Start( )
     {
-        mesh = 
-            GetComponent<SkinnedMeshRenderer>( ).sharedMesh;
+        mesh = TryGetMesh( );
 
         OrgVertice = new Vector3[ mesh.vertices.Length ];
         System.Array.Copy( mesh.vertices , OrgVertice , mesh.vertices.Length );
@@ -222,17 +231,8 @@ public class WarpMod : EntityBase
         return temp;
     }
 
-    // Update is called once per frame
     void FixedUpdate( )
     {
-
         mesh.SetVertices(warpModifier_do( ) );
-
-        //var numVerts = mesh.vertices.Length;
-        //List<Vector3> temp =new List<Vector3>();
-
-        //mesh.GetVertices( temp );
-        //    mesh.SetVertices( CreateVert( temp ));
-
     }
 }

@@ -83,9 +83,9 @@ public class DragBar : EntityBase
             // Idleでクリックしたから
             // Horibar上ならドラッグへ
             Vector3 world = MouseInWorld( );
-            var value = BarLocalPos( world );
-            var isInXRange = 0.0f < value.x && value.x < HoriLength;
-            var isInYRange = 0.0f < value.y && value.y < 1.0f;
+            var barLocal = BarLocalPos( world );
+            var isInXRange = 0.0f < barLocal.x && barLocal.x < HoriLength;
+            var isInYRange = 0.0f < barLocal.y && barLocal.y < 1.0f;
 
             if ( isInYRange && isInXRange )
             {
